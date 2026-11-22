@@ -1,30 +1,50 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Data;
+using NAudio.CoreAudioApi;
 
-from addition import addition
-from flask import Flask, request
-from flask_restful import Resource, Api
-app = Flask("adding two numbers")
-api = Api(app)
+namespace AudioAPI
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Welcome to the Volume Control App");
+            Console.WriteLine("Choose an option:");
+            Console.WriteLine("1: Increase Volume");
+            Console.WriteLine("2: Decrease Volume");
+            Console.WriteLine("3: Set Volume (0-100)");
+            Console.WriteLine("4: Exit");
 
-class Adder(Resource) :
-    def get(self):
-        args = request.args
-        print(args) # For debugging
-        
-        a = int(args['a'])
-        b = int(args['b'])
-        print("a is", a)
-        print("b is", b)
-        db_utils = addition(a, b)
-        cursor = db_utils.Add()
+            var deviceEnumerator = new MMDeviceEnumerator();
+            var device = deviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
-        return cursor
-
-
-api.add_resource(Adder, '/add')
-
-if __name__ == '__main__':
-    app.run(host = "0.0.0.0", port = 9000)
-
-
-    
+            bool running = true;
+            while (running)
+            {
+                string input = Console.ReadLine();
+                switch (input)
+                {
+                    case "1":
+                        device.AudioEndpointVolume.VolumeStepUp();
+                        Console.WriteLine($"Volume increased → Now: {(int)(device.AudioEndpointVolume.MasterVolumeLevelScalar * 100)}%");
+                        break;
+                    case "2":
+                        device.AudioEndpointVolume.VolumeStepDown();
+                        Console.WriteLine($"Volume decreased → Now: {(int)(device.AudioEndpointVolume.MasterVolumeLevelScalar * 100)}%");
+                        break;
+                    case "3":
+                        Console.Write("Enter volume (0-100): ");
+                        if (int.TryParse(Console.ReadLine(), out int vol))
+                        {
+                            device.AudioEndpointVolume.MasterVolumeLevelScalar = vol / 100.0f;
+                            Console.WriteLine($"Volume set to {vol}%.");
+                        }
+                        break;
+                    case "4":
+                        running = false;
+                        break;
+                }
+            }
+        }
+    }
+}
