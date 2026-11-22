@@ -1,19 +1,30 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Threading.Tasks;
 
-class Program
-{
-    // Import GetSystemMetrics from user32.dll
-    [DllImport("user32.dll")]
-    static extern int GetSystemMetrics(int nIndex);
+from addition import addition
+from flask import Flask, request
+from flask_restful import Resource, Api
+app = Flask("adding two numbers")
+api = Api(app)
 
-    static void Main()
-    {
-        int screenWidth = GetSystemMetrics(0); // SM_CXSCREEN = 0
-        int screenHeight = GetSystemMetrics(1); // SM_CYSCREEN = 1
+class Adder(Resource) :
+    def get(self):
+        args = request.args
+        print(args) # For debugging
+        
+        a = int(args['a'])
+        b = int(args['b'])
+        print("a is", a)
+        print("b is", b)
+        db_utils = addition(a, b)
+        cursor = db_utils.Add()
 
-        Console.WriteLine("Screen Width: {0}, Screen Height: {1}", screenWidth, screenHeight);
+        return cursor
 
-        Console.ReadKey();
-    }
-}
+
+api.add_resource(Adder, '/add')
+
+if __name__ == '__main__':
+    app.run(host = "0.0.0.0", port = 9000)
+
+
+    
